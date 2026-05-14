@@ -6,7 +6,7 @@ pipeline {
         IMAGE_TAG = "dev-${BUILD_NUMBER}"
         IMAGE_NAME = "${APP_NAME}:${IMAGE_TAG}"
 
-        GIT_REPO = "https://github.com/Varsith/apex_CI-CD_pipeline.git"
+        GIT_REPO = "git@github.com:Varsith/Python-CICI-Project.git"
         GIT_CREDENTIALS_ID = "GITHUB_CREDENTIALS"
 
         OCI_CONFIG_PROFILE = "DEFAULT"
