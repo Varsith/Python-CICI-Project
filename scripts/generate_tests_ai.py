@@ -59,20 +59,20 @@ Strict output rules:
 3. Do not include ```python code fences.
 4. Do not explain anything.
 5. Use pytest.
-6. Import the application exactly as: from app import main
-7. Test normal cases.
-8. Test edge cases.
-9. Test exception cases wherever applicable.
-10. The generated file must run using: pytest tests/
-11. Do not use external services.
-12. Do not generate destructive tests.
-13. Do not use os.remove, shutil.rmtree, subprocess, socket, requests, eval, or exec.
-14. Keep tests deterministic.
+6. The first non-comment line of the output must be exactly: from app import main
+7. Every function call must use main.function_name(...)
+8. Test normal cases.
+9. Test edge cases.
+10. Test exception cases wherever applicable.
+11. The generated file must run using: pytest tests/
+12. Do not use external services.
+13. Do not generate destructive tests.
+14. Do not use os.remove, shutil.rmtree, subprocess, socket, requests, eval, or exec.
+15. Keep tests deterministic.
 
 Python source code:
 {source_code}
 """
-
 
 def call_oci_genai(prompt):
     config = oci.config.from_file(OCI_CONFIG_FILE, CONFIG_PROFILE)
@@ -136,9 +136,16 @@ def extract_text_from_response(response):
 def clean_generated_code(ai_output):
     code = ai_output.strip()
 
+    # Remove markdown code fences if the model returns them
     code = re.sub(r"^```python", "", code)
     code = re.sub(r"^```", "", code)
     code = re.sub(r"```$", "", code)
+
+    code = code.strip()
+
+    # If AI forgot the required import, add it automatically
+    if "from app import main" not in code:
+        code = "from app import main\n\n" + code
 
     return code.strip() + "\n"
 
@@ -167,10 +174,7 @@ def validate_generated_test_code(code):
         raise ValueError("Generated code does not contain pytest test functions.")
 
     if "from app import main" not in code:
-        raise ValueError(
-            "Generated code must import application using: from app import main"
-        )
-
+        raise ValueError("Generated code still does not contain required app import.")
 
 def write_test_file(code):
     TEST_DIR.mkdir(exist_ok=True)
